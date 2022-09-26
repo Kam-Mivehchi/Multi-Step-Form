@@ -1,37 +1,80 @@
-import './style.css';
-import $ from 'jquery';
+var current_fs, next_fs, previous_fs; //fieldsets
+var left, opacity, scale; //fieldset properties which we will animate
+var animating; //flag to prevent quick multi-click glitches
 
-// Please feel free to remove everything below this line 😄
-const inputs = $('input')
+$(".next").click(function () {
+  if (animating) return false;
+  animating = true;
 
-// Starter data;
-const data = {
-  name: "World"
-}
+  current_fs = $(this).parent();
+  next_fs = $(this).parent().next();
 
-// updates reactive elements text content;
-const reactiveData = new Proxy(data, {
-  set(target, prop, value) {
-    if (target[prop] === value) return target[prop];
-    $(`[data-reactive="${prop}"]`).text(value);
-    return true;
-  }
-})
+  //activate next step on progressbar using the index of next_fs
+  $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
 
-// updates reactive elems on input
-inputs.on('input', function () {
-  const name = $(this).prop("name");
-  const value = $(this).val();
-  reactiveData[name] = value;
-})
+  //show the next fieldset
+  next_fs.show();
+  //hide the current fieldset with style
+  current_fs.animate({ opacity: 0 }, {
+    step: function (now, mx) {
+      //as the opacity of current_fs reduces to 0 - stored in "now"
+      //1. scale current_fs down to 80%
+      scale = 1 - (1 - now) * 0.2;
+      //2. bring next_fs from the right(50%)
+      left = (now * 50) + "%";
+      //3. increase opacity of next_fs to 1 as it moves in
+      opacity = 1 - now;
+      current_fs.css({
+        'transform': 'scale(' + scale + ')',
+        'position': 'absolute'
+      });
+      next_fs.css({ 'left': left, 'opacity': opacity });
+    },
+    duration: 800,
+    complete: function () {
+      current_fs.hide();
+      animating = false;
+    },
+    //this comes from the custom easing plugin
+    easing: 'easeInOutBack'
+  });
+});
 
-// populates input elements with proper data;
-$(function () {
-  const reactiveElems = $('[data-reactive]');
-  reactiveElems.each(function (index, elem) {
-    const name = $(elem).data('reactive')
-    const value = data[name];
-    $(elem).text(value);
-    $(`[name=${name}]`).val(value)
-  })
+$(".previous").click(function () {
+  if (animating) return false;
+  animating = true;
+
+  current_fs = $(this).parent();
+  previous_fs = $(this).parent().prev();
+
+  //de-activate current step on progressbar
+  $("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
+
+  //show the previous fieldset
+  previous_fs.show();
+  //hide the current fieldset with style
+  current_fs.animate({ opacity: 0 }, {
+    step: function (now, mx) {
+      //as the opacity of current_fs reduces to 0 - stored in "now"
+      //1. scale previous_fs from 80% to 100%
+      scale = 0.8 + (1 - now) * 0.2;
+      //2. take current_fs to the right(50%) - from 0%
+      left = ((1 - now) * 50) + "%";
+      //3. increase opacity of previous_fs to 1 as it moves in
+      opacity = 1 - now;
+      current_fs.css({ 'left': left });
+      previous_fs.css({ 'transform': 'scale(' + scale + ')', 'opacity': opacity });
+    },
+    duration: 800,
+    complete: function () {
+      current_fs.hide();
+      animating = false;
+    },
+    //this comes from the custom easing plugin
+    easing: 'easeInOutBack'
+  });
+});
+
+$(".submit").click(function () {
+  return false;
 })
