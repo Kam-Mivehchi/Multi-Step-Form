@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+input,
+textarea,
+select,
+textarea {
+   border: 1px solid;
+   border-radius: 5px;
+   background-color: lightgrey;
+   width: 100%;
+}
+
+label {
+   display: block;
+}
